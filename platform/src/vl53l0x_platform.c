@@ -1,4 +1,5 @@
 #include "vl53l0x_platform.h"
+#include <unistd.h>
 
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
@@ -272,12 +273,14 @@ VL53L0X_Error VL53L0X_PollingDelay(VL53L0X_DEV Dev)
 {
 	
     VL53L0X_Error status = VL53L0X_ERROR_NONE;
-    volatile uint32_t i;
+    usleep(5000);
 
+    /*
     for(i=0;i<VL53L0X_POLLINGDELAY_LOOPNB;i++){
         //Do nothing
         
     }
+    */
 
     return status;
 }
