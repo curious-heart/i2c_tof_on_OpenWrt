@@ -199,6 +199,12 @@ int tof_open()
         printf("ProductRevisionMinor : %d\n", DeviceInfo.ProductRevisionMinor);
     }
     
+    Status = tof_measure_prepare();
+    if(Status != VL53L0X_ERROR_NONE)
+    {
+        printf("tof measure prepare error.\n");
+    }
+
     return Status;
 }
 
@@ -223,7 +229,7 @@ int tof_continuous_measure(unsigned short* result_buf, int count, float interval
     VL53L0X_RangingMeasurementData_t    RangingMeasurementData;
     VL53L0X_RangingMeasurementData_t   *pRangingMeasurementData    = &RangingMeasurementData;
     VL53L0X_Error Status = VL53L0X_ERROR_NONE;
-    int measure_cnt = 0;
+    int measure_cnt = 0, print_cnt;
     bool endless = false;
 
     if((result_buf == NULL) || (count <= 0))
@@ -239,12 +245,14 @@ int tof_continuous_measure(unsigned short* result_buf, int count, float interval
     printf("tof continuous measure, count %d, interval %.02f seconds.\n",
             count, interval);
 
+    /*
     Status = tof_measure_prepare();
     if(Status != VL53L0X_ERROR_NONE)
     {
         printf("tof measure prepare error.\n");
         return measure_cnt;
     }
+    */
 
     if(Status == VL53L0X_ERROR_NONE)
     {
@@ -262,7 +270,7 @@ int tof_continuous_measure(unsigned short* result_buf, int count, float interval
 
     if(Status == VL53L0X_ERROR_NONE)
     {
-        measure_cnt = 0;
+        measure_cnt = 0; print_cnt = 0;
         if(endless) count = 1;
         while(measure_cnt < count)
         {
@@ -277,7 +285,7 @@ int tof_continuous_measure(unsigned short* result_buf, int count, float interval
                     *(result_buf + measure_cnt) = pRangingMeasurementData->RangeMilliMeter;
                 }
 
-                printf("%d: %d\n", measure_cnt, pRangingMeasurementData->RangeMilliMeter);
+                printf("%d: %d\n", print_cnt++, pRangingMeasurementData->RangeMilliMeter);
                 // Clear the interrupt
                 VL53L0X_ClearInterruptMask(pMyDevice, VL53L0X_REG_SYSTEM_INTERRUPT_GPIO_NEW_SAMPLE_READY);
                 VL53L0X_PollingDelay(pMyDevice);
@@ -327,12 +335,14 @@ unsigned short tof_single_measure()
     FixPoint1616_t LimitCheckCurrent;
     uint16_t measure_ret = (uint16_t)(-1);
 
+    /*
     Status = tof_measure_prepare();
     if(Status != VL53L0X_ERROR_NONE)
     {
         printf("tof measure prepare error.\n");
         return measure_ret;
     }
+    */
 
     if(Status == VL53L0X_ERROR_NONE)
     {
