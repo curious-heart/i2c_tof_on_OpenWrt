@@ -1,14 +1,16 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "tof_measure.h"
 
-
+#define MAX_CHAR_NUM_READ 16
 int main(int argc, char **argv)
 {
     int ret;
     bool end;
+    char r_buf[MAX_CHAR_NUM_READ + 1];
 
     ret = tof_open();
     if(ret != 0)
@@ -27,7 +29,8 @@ int main(int argc, char **argv)
         printf("2: continuous measurement.\n");
         printf("3: endless measurement.\n");
         printf("-1: exit.\n");
-        scanf("%d", &op);
+        fgets(r_buf, sizeof(r_buf), stdin);
+        sscanf(r_buf, "%d", &op);
         switch(op)
         {
             case 0:
@@ -55,7 +58,8 @@ int main(int argc, char **argv)
                     (double)TOF_CONTI_MEAS_MIN_INTERVAL,
                     (double)TOF_CONTI_MEAS_MAX_INTERVAL);
 
-                    scanf("%d%f", &count, &interval);
+                    fgets(r_buf, sizeof(r_buf), stdin);
+                    sscanf(r_buf, "%d %f", &count, &interval);
                     if(count < TOF_CONTI_MEAS_MIN_COUNT) count = TOF_CONTI_MEAS_MIN_COUNT;
                     if(count > TOF_CONTI_MEAS_MAX_COUNT) count = TOF_CONTI_MEAS_MAX_COUNT;
                     if(interval < TOF_CONTI_MEAS_MIN_INTERVAL) interval = TOF_CONTI_MEAS_MIN_INTERVAL;
@@ -90,7 +94,8 @@ int main(int argc, char **argv)
                     printf("please input interval in seconds(%.02f~%.02f):",
                                 (double)TOF_CONTI_MEAS_MIN_INTERVAL,
                                 (double)TOF_CONTI_MEAS_MAX_INTERVAL);
-                    scanf("%f", &interval);
+                    fgets(r_buf, sizeof(r_buf), stdin);
+                    sscanf(r_buf, "%f", &interval);
                     tof_continuous_measure(NULL, -1, interval);
                 }
                 break;
