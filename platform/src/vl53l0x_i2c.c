@@ -10,6 +10,7 @@
 #include "vl53l0x_def.h"
 #include "vl53l0x_i2c.h"
 
+#include "logger.h"
 //////////////////////////////////////////////////////////////////////////////////	 
 static int gs_i2c_tof_fd = -1;
 static u8 gs_i2c_tof_7b_addr = -1;
@@ -18,6 +19,9 @@ VL53L0X_Error VL53L0X_i2c_init(const char* dev_name, u8 slave_addr)
 {
     int ret;
     u8 addr_7b = slave_addr >> 1;
+
+    DIY_LOG(LOG_INFO, "VL53L0X_i2c_init: slave_addr: 0x%02X, addr_7b: 0x%02X\n", slave_addr, addr_7b);
+    //printf("VL53L0X_i2c_init: slave_addr: 0x%02X, addr_7b: 0x%02X\n", slave_addr, addr_7b);
 
     gs_i2c_tof_fd = open(dev_name, O_RDWR);
     if(gs_i2c_tof_fd < 0)
@@ -53,6 +57,7 @@ VL53L0X_Error VL53L0X_i2c_close()
     ret = close(gs_i2c_tof_fd);
     if(ret != 0)
     {
+        DIY_LOG(LOG_INFO, "close i2c error, ret: %d, errno: %d\n", ret, errno);
         return VL53L0X_ERROR_NOT_I2C_DEV_CLOSE_ERROR;
     }
     else
@@ -153,6 +158,7 @@ u8 VL53L0X_write_multi(u8 address, u8 index,u8 *pdata,u16 count)
     u8 *io_buf = NULL;
     ssize_t rw_ret;
 
+
     CHECK_I2C_DEV_FD;
     CHECK_I2C_SLAVE_ADDR(address);
 
@@ -166,6 +172,7 @@ u8 VL53L0X_write_multi(u8 address, u8 index,u8 *pdata,u16 count)
     rw_ret = write(gs_i2c_tof_fd, io_buf, count + 1);
     if(rw_ret <= 0)
     {
+        DIY_LOG(LOG_INFO, "write ret: %d, errno: %d\n", rw_ret, errno);
         status = STATUS_FAIL;
     }
 

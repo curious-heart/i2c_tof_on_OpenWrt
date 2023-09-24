@@ -2,8 +2,8 @@
 BIN = ./bin
 OBJ = ./obj
 
-INC = . platform/inc core/inc
-SRC = . platform/src core/src
+INC = . ./common_tools platform/inc core/inc
+SRC = . ./common_tools platform/src core/src
 
 TARGET = tof_test
 all: prepare $(TARGET)
@@ -18,7 +18,7 @@ SOURCES = $(wildcard $(addsuffix /*.c, $(SRC)))
 # These variables hold the name of the compilation tool, the compilation flags and the link flags
 # We make use of these variables in the package manifest
 CC = gcc
-override CFLAGS += -Wall $(addprefix -I, $(INC))
+override CFLAGS += -Wall $(addprefix -I, $(INC)) -DUSE_I2C_2V8
 override LDFLAGS += 
  
 DEPS = $(INCLUDES)
@@ -30,11 +30,15 @@ OBJECTS = $(patsubst %.c, $(OBJ)/%.o, $(notdir $(SOURCES)))
 $(OBJ)/%.o: ./%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
+$(OBJ)/%.o: common_tools/%.c $(DEPS)
+	$(CC) -c -o $@ $< $(CFLAGS)
+
 $(OBJ)/%.o: platform/src/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
  
 $(OBJ)/%.o: core/src/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
+
 
 $(TARGET): $(OBJECTS)
 	@echo $(OBJECTS)

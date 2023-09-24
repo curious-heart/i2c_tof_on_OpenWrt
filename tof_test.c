@@ -1,9 +1,25 @@
+#include <signal.h>
+
+#include <stdlib.h>
 #include <malloc.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <stdio.h>
 
+#include "version_def.h"
 #include "tof_measure.h"
+
+static bool gs_tof_opened = false;
+
+static void exit_sigint(int sig)
+{
+    if(gs_tof_opened)
+    {
+        tof_close();
+    }
+    gs_tof_opened = false;
+    exit(sig);
+}
 
 #define MAX_CHAR_NUM_READ 16
 int main(int argc, char **argv)
@@ -12,12 +28,22 @@ int main(int argc, char **argv)
     bool end;
     char r_buf[MAX_CHAR_NUM_READ + 1];
 
+    if(argc >=2)
+    {
+        printf("%s\n", g_version_string);
+        return 0;
+    }
+
     ret = tof_open();
     if(ret != 0)
     {
         printf("tof_open error: %d\n", ret);
         return ret;
     }
+    gs_tof_opened = true;
+
+    signal(SIGINT, exit_sigint);
+
 
     end = false;
     while(!end)
@@ -52,7 +78,7 @@ int main(int argc, char **argv)
                     float interval;
                     int ret;
 
-                    printf("please input measure count(%d~%d)  and interval in seconds(%.02f~%.02f):",
+                    printf("please input measure count(%d~%d)  and interval in seconds(%.02f~%.02f):\n",
                     TOF_CONTI_MEAS_MIN_COUNT,
                     TOF_CONTI_MEAS_MAX_COUNT,
                     (double)TOF_CONTI_MEAS_MIN_INTERVAL,
@@ -64,7 +90,8 @@ int main(int argc, char **argv)
                     if(count > TOF_CONTI_MEAS_MAX_COUNT) count = TOF_CONTI_MEAS_MAX_COUNT;
                     if(interval < TOF_CONTI_MEAS_MIN_INTERVAL) interval = TOF_CONTI_MEAS_MIN_INTERVAL;
                     if(interval > TOF_CONTI_MEAS_MAX_INTERVAL) interval = TOF_CONTI_MEAS_MAX_INTERVAL;
-                    meas_result = (unsigned short*)malloc(count);
+                    //meas_result = (unsigned short*)malloc(count * 2);
+                    meas_result = (unsigned short*)calloc(count, sizeof(unsigned short*));
                     if(!meas_result)
                     {
                         printf("Try to measure continuously, but malloc error.\n");
@@ -91,7 +118,7 @@ int main(int argc, char **argv)
             case 3:
                 {
                     float interval;
-                    printf("please input interval in seconds(%.02f~%.02f):",
+                    printf("please input interval in seconds(%.02f~%.02f):\n",
                                 (double)TOF_CONTI_MEAS_MIN_INTERVAL,
                                 (double)TOF_CONTI_MEAS_MAX_INTERVAL);
                     fgets(r_buf, sizeof(r_buf), stdin);

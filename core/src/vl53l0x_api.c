@@ -33,20 +33,28 @@
 #include "vl53l0x_api_calibration.h"
 #include "vl53l0x_api_strings.h"
 
+#include "logger.h"
+
 #ifndef __KERNEL__
 #include <stdlib.h>
 #endif
+/*
 #define LOG_FUNCTION_START(fmt, ...) \
 	_LOG_FUNCTION_START(TRACE_MODULE_API, fmt, ##__VA_ARGS__)
 #define LOG_FUNCTION_END(status, ...) \
 	_LOG_FUNCTION_END(TRACE_MODULE_API, status, ##__VA_ARGS__)
 #define LOG_FUNCTION_END_FMT(status, fmt, ...) \
 	_LOG_FUNCTION_END_FMT(TRACE_MODULE_API, status, fmt, ##__VA_ARGS__)
+*/
 
 #ifdef VL53L0X_LOG_ENABLE
 #define trace_print(level, ...) trace_print_module_function(TRACE_MODULE_API, \
 	level, TRACE_FUNCTION_NONE, ##__VA_ARGS__)
 #endif
+
+
+#define LOG_FUNCTION_START(...) (void)0//DIY_LOG(LOG_INFO, "")
+#define LOG_FUNCTION_END(status, ...) (void)0 //DIY_LOG(LOG_INFO, "status: %d\n", status)
 
 /* Group PAL General Functions */
 
@@ -380,17 +388,22 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 		VL53L0X_REG_VHV_CONFIG_PAD_SCL_SDA__EXTSUP_HV,
 		0xFE,
 		0x01);
+    DIY_LOG(LOG_INFO, "VL53L0X_UpdateByte (USE_I2C_2V8) return: %d\n", Status);
 #endif
 
 	/* Set I2C standard mode */
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_WrByte(Dev, 0x88, 0x00);
 
+    DIY_LOG(LOG_INFO, "VL53L0X_WrByte(Dev,0x88, 0x00) return: %d\n", Status);
+
 	VL53L0X_SETDEVICESPECIFICPARAMETER(Dev, ReadDataFromDeviceDone, 0);
 
 #ifdef USE_IQC_STATION
 	if (Status == VL53L0X_ERROR_NONE)
 		Status = VL53L0X_apply_offset_adjustment(Dev);
+
+    DIY_LOG(LOG_INFO, "VL53L0X_apply_offset_adjustment(Dev) return: %d\n", Status);
 #endif
 
 	/* Default value is 1000 for Linearity Corrective Gain */
@@ -410,6 +423,7 @@ VL53L0X_Error VL53L0X_DataInit(VL53L0X_DEV Dev)
 
 	/* Get default parameters */
 	Status = VL53L0X_GetDeviceParameters(Dev, &CurrentParameters);
+    DIY_LOG(LOG_INFO, "VL53L0X_GetDeviceParameters(Dev, &CurrentParameters) return: %d\n", Status);
 	if (Status == VL53L0X_ERROR_NONE) {
 		/* initialize PAL values */
 		CurrentParameters.DeviceMode = VL53L0X_DEVICEMODE_SINGLE_RANGING;
@@ -2883,6 +2897,8 @@ VL53L0X_Error VL53L0X_ClearInterruptMask(VL53L0X_DEV Dev, uint32_t InterruptMask
 		Status |= VL53L0X_RdByte(Dev,
 			VL53L0X_REG_RESULT_INTERRUPT_STATUS, &Byte);
 		LoopCount++;
+
+        DIY_LOG(LOG_INFO, "Status:%d, InterruptMask Parm: 0x%X, Byte: 0x%X\n", Status, InterruptMask, Byte);
 	} while (((Byte & 0x07) != 0x00)
 			&& (LoopCount < 3)
 			&& (Status == VL53L0X_ERROR_NONE));
